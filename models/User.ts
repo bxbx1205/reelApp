@@ -14,13 +14,12 @@ export interface Iuser {
     updatedAt?: Date;
 }
 
-// Admin email - god mode
 export const ADMIN_EMAILS = ["srbhanarkar05@gmail.com"];
 
 const userSchema = new Schema<Iuser>(
     {
         email: { type: String, required: true, unique: true },
-        password: { type: String, required: false }, // Optional for OAuth users
+        password: { type: String, required: false }, 
         role: { type: String, enum: ["user", "admin"], default: "user" },
         image: { type: String },
         name: { type: String },
@@ -33,7 +32,6 @@ const userSchema = new Schema<Iuser>(
 );
 
 userSchema.pre("save", async function () {
-    // Set admin role for admin emails
     if (ADMIN_EMAILS.includes(this.email)) {
         this.role = "admin";
     }

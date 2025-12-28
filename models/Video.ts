@@ -27,7 +27,7 @@ export interface Ivideo{
 
 const videoSchema = new Schema<Ivideo>({
     title:{type:String,required:true},
-    description:{type:String,required:true},
+    description:{type:String,default:""},
     videoUrl:{type:String,required:true},
     thumbnailUrl:{type:String,required:true},
     controls:{type:Boolean,default:true},

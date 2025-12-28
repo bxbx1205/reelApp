@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import Video from "@/models/Video";
+import { revalidatePath } from "next/cache";
 
 export async function GET(request: Request) {
   try {
@@ -16,15 +17,21 @@ export async function GET(request: Request) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .select("_id title description videoUrl thumbnailUrl likes likedBy userEmail createdAt")
       .lean();
 
     const total = await Video.countDocuments();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       videos,
       total,
       hasMore: skip + videos.length < total,
     });
+    
+    // Short cache for fresh content
+    response.headers.set("Cache-Control", "public, s-maxage=10, stale-while-revalidate=30");
+    
+    return response;
   } catch (error) {
     console.error("Error fetching videos:", error);
     return NextResponse.json(
@@ -62,6 +69,8 @@ export async function POST(request: Request) {
       transformation,
       userEmail: session.user.email,
     });
+
+    revalidatePath("/feed");
 
     return NextResponse.json({ video }, { status: 201 });
   } catch (error) {

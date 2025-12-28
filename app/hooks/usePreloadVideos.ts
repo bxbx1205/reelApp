@@ -3,69 +3,39 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Ivideo } from "@/models/Video";
 
-const PRELOAD_COUNT = 2;
+// Reduced to 1 to save processing units - only preload next video
+const PRELOAD_COUNT = 1;
 
 export function usePreloadVideos(videos: Ivideo[], currentIndex: number) {
   const preloadedUrls = useRef<Set<string>>(new Set());
-  const linkElements = useRef<Map<string, HTMLLinkElement>>(new Map());
 
   const preloadVideo = useCallback((url: string) => {
     if (preloadedUrls.current.has(url)) return;
     if (typeof window === "undefined") return;
-
+    
+    // Use prefetch hint instead of preload - lighter on bandwidth
     const link = document.createElement("link");
-    link.rel = "preload";
+    link.rel = "prefetch";
     link.as = "video";
     link.href = url;
+    link.crossOrigin = "anonymous";
     document.head.appendChild(link);
-
+    
     preloadedUrls.current.add(url);
-    linkElements.current.set(url, link);
-  }, []);
-
-  const cleanupPreload = useCallback((url: string) => {
-    const link = linkElements.current.get(url);
-    if (link && link.parentNode) {
-      link.parentNode.removeChild(link);
-    }
-    linkElements.current.delete(url);
-    preloadedUrls.current.delete(url);
+    
+    // Auto-cleanup after 30s to prevent memory buildup
+    setTimeout(() => {
+      if (link.parentNode) link.parentNode.removeChild(link);
+    }, 30000);
   }, []);
 
   useEffect(() => {
     if (!videos.length) return;
-
-    const urlsToPreload = new Set<string>();
     
-    for (let i = 0; i <= PRELOAD_COUNT; i++) {
-      const index = currentIndex + i;
-      if (index < videos.length) {
-        urlsToPreload.add(videos[index].videoUrl);
-      }
+    // Only preload next video, not previous (saves tokens)
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < videos.length) {
+      preloadVideo(videos[nextIndex].videoUrl);
     }
-
-    if (currentIndex > 0) {
-      urlsToPreload.add(videos[currentIndex - 1].videoUrl);
-    }
-
-    urlsToPreload.forEach(preloadVideo);
-
-    preloadedUrls.current.forEach((url) => {
-      if (!urlsToPreload.has(url)) {
-        cleanupPreload(url);
-      }
-    });
-  }, [videos, currentIndex, preloadVideo, cleanupPreload]);
-
-  useEffect(() => {
-    return () => {
-      linkElements.current.forEach((link) => {
-        if (link.parentNode) {
-          link.parentNode.removeChild(link);
-        }
-      });
-      linkElements.current.clear();
-      preloadedUrls.current.clear();
-    };
-  }, []);
+  }, [videos, currentIndex, preloadVideo]);
 }

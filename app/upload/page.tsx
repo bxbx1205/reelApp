@@ -106,9 +106,9 @@ export default function UploadPage() {
 
       setUploadProgress(100);
 
-      setTimeout(() => {
-        router.push("/feed");
-      }, 500);
+      // Navigate and refresh to show new video immediately
+      router.push("/feed");
+      router.refresh();
     } catch (err: any) {
       setError(err.message || "Upload failed. Please try again.");
       setIsUploading(false);

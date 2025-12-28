@@ -87,12 +87,12 @@ function ReelComponent({ video, isActive, onLike, isLiked = false, likeCount = 0
       <video
         ref={videoRef}
         className="h-full w-full object-cover sm:object-contain sm:max-h-full sm:max-w-full"
-        src={video.videoUrl}
+        src={isActive ? video.videoUrl : undefined}
         poster={video.thumbnailUrl}
         playsInline
         muted={state.isMuted}
         loop
-        preload="metadata"
+        preload={isActive ? "auto" : "none"}
       />
 
       {state.isLoading && <ReelLoading />}

@@ -7,7 +7,6 @@ async function getVideos(): Promise<Ivideo[]> {
     await connectToDatabase();
     const videos = await Video.find({})
       .sort({ createdAt: -1 })
-      .limit(20)
       .lean();
     
     // Serialize MongoDB documents

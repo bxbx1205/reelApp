@@ -66,8 +66,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ video }, { status: 201 });
   } catch (error) {
     console.error("Error creating video:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create video" },
+      { error: "Failed to create video", details: errorMessage },
       { status: 500 }
     );
   }

@@ -14,6 +14,10 @@ export interface Ivideo{
     videoUrl:string;
     thumbnailUrl:string;
     controls?:boolean;
+    likes: number;
+    likedBy: string[];
+    userEmail?: string;
+    createdAt?: Date;
     transformation?:{
         height:number
         width:number
@@ -27,9 +31,12 @@ const videoSchema = new Schema<Ivideo>({
     videoUrl:{type:String,required:true},
     thumbnailUrl:{type:String,required:true},
     controls:{type:Boolean,default:true},
+    likes: {type: Number, default: 0},
+    likedBy: [{type: String}],
+    userEmail: {type: String},
     transformation:{
-        height:{type:Number, default:VIDEO_DIMENSIONS},
-        width:{type:Number, default:VIDEO_DIMENSIONS},
+        height:{type:Number, default:VIDEO_DIMENSIONS.height},
+        width:{type:Number, default:VIDEO_DIMENSIONS.width},
         quality:{type:Number, min:1, max:100},
     }
 },{timestamps:true})
